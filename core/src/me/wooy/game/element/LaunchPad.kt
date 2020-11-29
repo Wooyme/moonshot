@@ -5,11 +5,8 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d.BodyDef
-import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer
 import com.badlogic.gdx.physics.box2d.FixtureDef
 import com.badlogic.gdx.physics.box2d.PolygonShape
-import com.badlogic.gdx.physics.box2d.joints.RevoluteJointDef
-import com.badlogic.gdx.physics.box2d.joints.WeldJoint
 import com.badlogic.gdx.physics.box2d.joints.WeldJointDef
 import com.badlogic.gdx.utils.TimeUtils
 import me.wooy.game.BaseScreen
@@ -55,7 +52,7 @@ class LaunchPad(screen: BaseScreen, items: Map<Position, Item>) : Element(screen
         }
         if (starting) {
             blockList.filter { it.item.hasForce }.forEach {
-                val canStart=it.item.program?.let {
+                val canStart=it.item.powerProgram?.let {
                     TimeUtils.millis() - startTime>it.startTime*1000 && if(it.duration<0) true else TimeUtils.millis()-(startTime+it.startTime)<it.duration*1000
                 }?:true
                 val force = it.item.force!!
@@ -63,14 +60,26 @@ class LaunchPad(screen: BaseScreen, items: Map<Position, Item>) : Element(screen
                 val sum = fuelList.filter { it.fuel > 0 }.sumByDouble { it.fuel.toDouble() }.toFloat()
 
                 if (sum > force.cost && canStart) {
-                    val programX = it.item.program?.vec?.let { it.x/Math.sqrt(Math.pow(it.x.toDouble(),2.toDouble())+Math.pow(it.y.toDouble(),2.toDouble())) }?.toFloat()?:1f
-                    val programY = it.item.program?.vec?.let { it.y/Math.sqrt(Math.pow(it.x.toDouble(),2.toDouble())+Math.pow(it.y.toDouble(),2.toDouble())) }?.toFloat()?:1f
-                    it.fixture.body.applyForceToCenter(force.force * force.vec.x * `(it.item.program?.rate?:1f)*programX, force.force * force.vec.y * (it.item.program?.rate?:1f)*programY, true)
+                    val programX = it.item.powerProgram?.vec?.let { it.x/Math.sqrt(Math.pow(it.x.toDouble(),2.toDouble())+Math.pow(it.y.toDouble(),2.toDouble())) }?.toFloat()?:1f
+                    val programY = it.item.powerProgram?.vec?.let { it.y/Math.sqrt(Math.pow(it.x.toDouble(),2.toDouble())+Math.pow(it.y.toDouble(),2.toDouble())) }?.toFloat()?:1f
+                    it.fixture.body.applyForceToCenter(force.force * force.vec.x * (it.item.powerProgram?.rate?:1f)*programX, force.force * force.vec.y * (it.item.powerProgram?.rate?:1f)*programY, true)
                     val notEmptyFuel = fuelList.filter { it.fuel > 0 }
-                    val ava = force.cost / notEmptyFuel.size *  (it.item.program?.rate?:1f)
+                    val ava = force.cost / notEmptyFuel.size *  (it.item.powerProgram?.rate?:1f)
                     notEmptyFuel.forEach {
                         it.fuel -= ava
                         if (it.fuel < 0) it.fuel = 0f
+                        it.fixture.density = it.item.weight+(it.fuel/it.item.fuel!!.total)*it.item.fuel!!.weight
+                        it.fixture.body.resetMassData()
+                    }
+                }
+            }
+            blockList.filter { it.item.hasJoint && it.fixture.body.jointList.notEmpty() }.forEach {
+                val canStart=it.item.jointProgram?.let {
+                    TimeUtils.millis() - startTime>it.startTime*1000
+                }?:true
+                if(canStart){
+                    it.jointList.forEach {
+                        world.destroyJoint(it)
                     }
                 }
             }
@@ -89,7 +98,7 @@ class LaunchPad(screen: BaseScreen, items: Map<Position, Item>) : Element(screen
         shape.setAsBox(16f, 16f)
         val fixtureDef = FixtureDef()
         fixtureDef.shape = shape
-        fixtureDef.density = item.weight
+        fixtureDef.density = item.weight+(item.fuel?.weight?:0f)
         fixtureDef.friction = 0f
         fixtureDef.restitution = 0f
         val fixture = body.createFixture(fixtureDef)
@@ -112,10 +121,12 @@ class LaunchPad(screen: BaseScreen, items: Map<Position, Item>) : Element(screen
                     map[Position(it.position.x + 1, it.position.y)],
                     map[Position(it.position.x, it.position.y - 1)],
                     map[Position(it.position.x, it.position.y + 1)]).forEach { n ->
-                val joint = WeldJointDef()
-                joint.initialize(it.fixture.body, n.fixture.body, Vector2((it.fixture.body.worldCenter.x + n.fixture.body.worldCenter.x) / 2
+                val jointDef = WeldJointDef()
+                jointDef.initialize(it.fixture.body, n.fixture.body, Vector2((it.fixture.body.worldCenter.x + n.fixture.body.worldCenter.x) / 2
                         , (it.fixture.body.worldCenter.y + n.fixture.body.worldCenter.y) / 2))
-                world.createJoint(joint)
+                val joint =  world.createJoint(jointDef)
+                it.jointList.add(joint)
+                n.jointList.add(joint)
             }
             map.remove(it.position)
         }
@@ -140,7 +151,11 @@ class LaunchPad(screen: BaseScreen, items: Map<Position, Item>) : Element(screen
         this.powerMap = mutableMapOf(*blockList.filter { it.item.hasForce }.map {
             val set = mutableSetOf<Block>()
             findPower(it, set)
-            it to set.toMutableList()
+            it to set.toMutableList().apply {
+                if(it.item.hasFuel){
+                    this.add(0,it)
+                }
+            }
         }.toTypedArray())
     }
 

@@ -4,22 +4,17 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.math.Vector2
-import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.TextField
 import me.wooy.game.BaseScreen
-import me.wooy.game.misc.Core
-import me.wooy.game.misc.Item
-import me.wooy.game.misc.Position
-import me.wooy.game.misc.Program
+import me.wooy.game.misc.*
 import java.util.*
 
 class Staging(screen: BaseScreen, private val stage: Stage, val items: MutableMap<Position, Item>) : Element(screen.world, screen.batch, screen.camera) {
     private val skin = Skin(Gdx.files.internal("default/skin/uiskin.json"))
     private val font = BitmapFont()
     private val itemPanel = TextureRegion(asset, 256, 2720, 160, 96)
-    private val input = TextureRegion(asset, 545, 175, 96, 15)
     private val hLine = TextureRegion(asset, 865, 60, 65, 10)
     private val vLine = TextureRegion(asset, 1000, 30, 10, 60)
     private val stagingVector = Vector2(camera.viewportWidth / 2f, 32f)
@@ -92,6 +87,9 @@ class Staging(screen: BaseScreen, private val stage: Stage, val items: MutableMa
                         it.hasForce -> {
                             showThrusterPanel(it)
                         }
+                        it.hasJoint->{
+                            showJointPanel(it)
+                        }
                     }
                 }
             }
@@ -162,7 +160,7 @@ class Staging(screen: BaseScreen, private val stage: Stage, val items: MutableMa
         stage.addActor(xField)
         stage.addActor(yField)
         panelCallback = {
-            item.program = Program(startTimeField.text.toFloat(),
+            item.powerProgram = PowerProgram(startTimeField.text.toFloat(),
                     if (durationField.text.isNotEmpty()) durationField.text.toFloat() else -1f,
                     powerRateField.text.toFloat(),
                     Vector2(xField.text.toFloat(), yField.text.toFloat()))
@@ -172,6 +170,26 @@ class Staging(screen: BaseScreen, private val stage: Stage, val items: MutableMa
             powerRateField.remove()
             xField.remove()
             yField.remove()
+        }
+    }
+
+    private fun showJointPanel(item: Item){
+        val eleVector2 = Vector2(camera.viewportWidth / 3f + 10f, camera.viewportHeight - 140f)
+        val programVector2 = Vector2(eleVector2.x, eleVector2.y - font.lineHeight - 80f)
+        panelDrawer = {
+            this.batch.draw(itemPanel, camera.viewportWidth / 3f, 100f, camera.viewportWidth / 3f, camera.viewportHeight - 200f)
+            font.draw(batch, item.name, eleVector2.x, eleVector2.y)
+            this.batch.draw(item.texture, eleVector2.x, eleVector2.y - font.lineHeight - 42f)
+            font.draw(batch, "Program:", programVector2.x, programVector2.y)
+            font.draw(batch, "Start Time:", programVector2.x, programVector2.y - font.lineHeight)
+        }
+        val startTimeField = TextField("0", skin)
+        startTimeField.setPosition(programVector2.x + 100f, programVector2.y - font.lineHeight * 2)
+        startTimeField.setSize(100f, font.lineHeight)
+        stage.addActor(startTimeField)
+        panelCallback = {
+            item.jointProgram = JointProgram(startTimeField.text.toFloat())
+            startTimeField.remove()
         }
     }
 }

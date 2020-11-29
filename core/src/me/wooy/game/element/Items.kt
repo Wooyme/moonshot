@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.math.Vector2
 import me.wooy.game.BaseScreen
 import me.wooy.game.misc.*
+import org.w3c.dom.Text
 import java.util.*
 import kotlin.collections.HashMap
 
@@ -38,10 +39,17 @@ class Items(screen: BaseScreen) : Element(screen.world, screen.batch, screen.cam
         items[Position(0,0)] = Item("Thruster",Texture(Gdx.files.internal("items/rocket_fins.png")),"This is a thruster",0.5f).apply {
             this.force = Force(500000f,Vector2(0f,1f),0.1f)
         }
-        items[Position(1,0)] = Item("Fuel Tank", Texture(Gdx.files.internal("items/fuel_tank.png")),"Fuel Tank",10f).apply {
-            this.fuel = Fuel(10f)
+        items[Position(1,0)] = Item("Fuel Tank", Texture(Gdx.files.internal("items/fuel_tank.png")),"Fuel Tank",1f).apply {
+            this.fuel = Fuel(20f,10f)
         }
         items[Position(2,0)] = Item("Structure", Texture(Gdx.files.internal("items/simple.png")),"Structure",1f)
+        items[Position(3,0)] = Item("Spinner", Texture(Gdx.files.internal("items/spinner.png")),"Spinner",0.5f).apply {
+            this.force = Force(50000f, Vector2(1f,1f),0.01f)
+            this.fuel = Fuel(1f,0.5f)
+        }
+        items[Position(4,0)] = Item("Joint",Texture(Gdx.files.internal("items/joint.png")),"Joint",0.1f).apply {
+            this.jointProgram = JointProgram(0f)
+        }
         items[Position(0,1)] = Core(Texture(Gdx.files.internal("items/core.png")))
     }
     override fun render() {
