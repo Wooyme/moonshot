@@ -17,6 +17,9 @@ abstract class BaseScreen(private val moonshot: Moonshot):InputListener(),Screen
     val camera: OrthographicCamera = OrthographicCamera().apply {
         this.setToOrtho(false, 1280f, 720f)
     }
+    val fixedCamera:OrthographicCamera = OrthographicCamera().apply {
+        this.setToOrtho(false, 1280f, 720f)
+    }
     val world = World(Vector2(0f,-10f),true)
 
     override fun render(delta: Float) {
@@ -27,11 +30,16 @@ abstract class BaseScreen(private val moonshot: Moonshot):InputListener(),Screen
         this.moonshot.batch.begin()
         elements.forEach(Element::render)
         this.moonshot.batch.end()
+        this.moonshot.batch.projectionMatrix = fixedCamera.combined
+        this.moonshot.batch.begin()
+        elements.forEach(Element::uiRender)
+        this.moonshot.batch.end()
         world.step(1/60f,6,2)
     }
 
     override fun dispose() {
         elements.forEach(Element::dispose)
+        world.dispose()
     }
 
     protected fun addElement(ele:Element){

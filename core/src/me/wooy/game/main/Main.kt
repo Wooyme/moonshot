@@ -14,6 +14,7 @@ import me.wooy.game.misc.Position
 
 
 class Main(private val moonshot: Moonshot, private val items:MutableMap<Position, Item>):BaseScreen(moonshot), InputProcessor by InputAdapter() {
+    private val music = Gdx.audio.newMusic(Gdx.files.internal("music/2.wav"))
     private val launchPad = LaunchPad(this,items)
     init {
         world.gravity.y = -10f
@@ -21,6 +22,8 @@ class Main(private val moonshot: Moonshot, private val items:MutableMap<Position
         addElement(Ground(world,this.moonshot.batch,camera))
         addElement(launchPad)
         Gdx.input.inputProcessor = this
+        music.isLooping = true
+        music.play()
     }
 
     override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
@@ -35,4 +38,15 @@ class Main(private val moonshot: Moonshot, private val items:MutableMap<Position
         }
         return true
     }
+
+    fun win(){
+        this.moonshot.screen = Startup(this.moonshot,true)
+        this.dispose()
+    }
+
+    override fun dispose() {
+        super.dispose()
+        music.dispose()
+    }
+
 }

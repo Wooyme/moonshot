@@ -19,7 +19,7 @@ import me.wooy.game.misc.Position
 
 class Builder(private val moonshot: Moonshot, itemStaging: MutableMap<Position, Item>) : BaseScreen(moonshot) {
     val stage = Stage()
-
+    private val music = Gdx.audio.newMusic(Gdx.files.internal("music/2.wav"))
     private val items = Items(this)
     private val staging = Staging(this, stage,itemStaging)
 
@@ -31,6 +31,8 @@ class Builder(private val moonshot: Moonshot, itemStaging: MutableMap<Position, 
         addElement(staging)
         stage.addListener(this)
         Gdx.input.inputProcessor = stage
+        music.isLooping = true
+        music.play()
     }
 
     override fun render(delta: Float) {
@@ -42,8 +44,10 @@ class Builder(private val moonshot: Moonshot, itemStaging: MutableMap<Position, 
 
     override fun touchDown(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int): Boolean {
         if (button == 0) {
+            staging.closeAlert(x,y)
             items.getItem(x, y)
             staging.openCore(x, y)
+            staging.openHelp(x,y)
         } else {
             items.select = null
             staging.deleteItem(x, y)
@@ -67,5 +71,10 @@ class Builder(private val moonshot: Moonshot, itemStaging: MutableMap<Position, 
         items.mouse.x = x
         items.mouse.y = y
         return true
+    }
+
+    override fun dispose() {
+        super.dispose()
+        music.dispose()
     }
 }

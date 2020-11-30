@@ -35,26 +35,25 @@ class Items(screen: BaseScreen) : Element(screen.world, screen.batch, screen.cam
         (1 .. ((topVector2.y-bottomVector2.y)/32).toInt()).forEach {
             rows.add(it*32f+bottomVector2.y+6)
         }
-        items[Position(0,0)] = Item("Thruster",Texture(Gdx.files.internal("items/rocket_fins.png")),"This is a thruster",0.5f).apply {
+        items[Position(0,0)] = Item("Thruster",Texture(Gdx.files.internal("items/rocket_fins.png")),"Generate a strong vertical downward thrust",2f).apply {
             this.force = Force(500000f,Vector2(0f,1f),0.1f)
         }
-        items[Position(1,0)] = Item("Fuel Tank", Texture(Gdx.files.internal("items/fuel_tank.png")),"Fuel Tank",1f).apply {
-            this.fuel = Fuel(20f,10f)
+        items[Position(1,0)] = Item("Fuel Tank", Texture(Gdx.files.internal("items/fuel_tank.png")),"Tank full of fuel",1f).apply {
+            this.fuel = Fuel(30f,15f)
         }
-        items[Position(2,0)] = Item("Structure", Texture(Gdx.files.internal("items/simple.png")),"Structure",1f)
-        items[Position(3,0)] = Item("Spinner", Texture(Gdx.files.internal("items/spinner.png")),"Spinner",0.5f).apply {
-            this.force = Force(50000f, Vector2(1f,1f),0.01f)
+        items[Position(2,0)] = Item("Structure", Texture(Gdx.files.internal("items/simple.png")),"Connect each part",1f)
+        items[Position(3,0)] = Item("Spinner", Texture(Gdx.files.internal("items/spinner.png")),"Generate small thrust in any direction",0.5f).apply {
+            this.force = Force(50000f, Vector2(1f,1f),1f)
             this.fuel = Fuel(1f,0.5f)
         }
-        items[Position(4,0)] = Item("Joint",Texture(Gdx.files.internal("items/joint.png")),"Joint",0.1f).apply {
-            this.jointProgram = JointProgram(0f)
+        items[Position(4,0)] = Item("Joint",Texture(Gdx.files.internal("items/joint.png")),"It can disconnect from the surroundings at a certain time",0.1f).apply {
+            this.jointProgram = JointProgram(1f)
         }
         items[Position(0,1)] = Core(Texture(Gdx.files.internal("items/core.png")))
     }
     override fun render() {
-        this.batch.draw(finishButton,finishButtonVector2.x,finishButtonVector2.y)
-        buttonFont.draw(this.batch,"Finish!",finishButtonVector2.x+14,finishButtonVector2.y+finishButton.regionHeight-4)
-        this.batch.draw(information,informationVector2.x,informationVector2.y,camera.viewportWidth/4f,information.regionHeight.toFloat())
+
+        this.batch.draw(information,informationVector2.x,informationVector2.y,camera.viewportWidth/3f,information.regionHeight.toFloat())
         this.batch.draw(uiBottom, bottomVector2.x, bottomVector2.y, camera.viewportWidth / 3f, uiBottom.regionHeight.toFloat())
         val vSize = (camera.viewportWidth / (3 * 32)).toInt()*32
         items.forEach { (position, item) ->

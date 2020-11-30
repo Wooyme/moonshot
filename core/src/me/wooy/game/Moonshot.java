@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import me.wooy.game.builder.Builder;
 import me.wooy.game.main.Main;
+import me.wooy.game.main.Startup;
 import me.wooy.game.misc.Item;
 import me.wooy.game.misc.Position;
 
@@ -17,8 +18,7 @@ public class Moonshot extends Game {
 	@Override
 	public void create () {
 		this.batch = new SpriteBatch();
-		Builder builder = new Builder(this, new HashMap<Position, Item>());
-		this.setScreen(builder);
+		this.setScreen(new Startup(this,false));
 	}
 
 	@Override

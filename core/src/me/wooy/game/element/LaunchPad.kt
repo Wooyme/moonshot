@@ -1,22 +1,30 @@
 package me.wooy.game.element
 
+import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.Sprite
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Vector2
-import com.badlogic.gdx.physics.box2d.BodyDef
-import com.badlogic.gdx.physics.box2d.FixtureDef
-import com.badlogic.gdx.physics.box2d.PolygonShape
+import com.badlogic.gdx.physics.box2d.*
 import com.badlogic.gdx.physics.box2d.joints.WeldJointDef
 import com.badlogic.gdx.utils.TimeUtils
-import me.wooy.game.BaseScreen
+import me.wooy.game.main.Main
 import me.wooy.game.misc.Block
+import me.wooy.game.misc.Core
 import me.wooy.game.misc.Item
 import me.wooy.game.misc.Position
 import java.util.*
 import kotlin.collections.HashMap
+import kotlin.math.roundToInt
 
-class LaunchPad(screen: BaseScreen, items: Map<Position, Item>) : Element(screen.world, screen.batch, screen.camera) {
+class LaunchPad(private val screen: Main, items: Map<Position, Item>) : Element(screen.world, screen.batch, screen.camera) {
+    private val moonTexture = Texture(Gdx.files.internal("0.png"))
+    private val moon = TextureRegion(moonTexture,201,201,200,200)
+    private lateinit var moonBody:Body
+    private val font = BitmapFont()
+    private val infoPanelTexture = TextureRegion(asset,32,2720,161,96)
     private val startButton = TextureRegion(asset, 709, 646, 26, 26)
     private val backButton = TextureRegion(asset, 1091, 710, 26, 26)
     private val startButtonVector2 = Vector2(0f, camera.viewportHeight - 26f)
@@ -26,6 +34,10 @@ class LaunchPad(screen: BaseScreen, items: Map<Position, Item>) : Element(screen
     private val baseX: Float
     private var starting = false
     private var startTime:Long = 0
+    private lateinit var core: Block
+    private val lastCoreVector2 = Vector2(0f,0f)
+    private var lastCheckTime = 0L
+    private var win = false
     init {
         val minX = items.minBy { it.key.x }?.key?.x
         val maxX = items.maxBy { it.key.x }?.key?.x
@@ -39,12 +51,45 @@ class LaunchPad(screen: BaseScreen, items: Map<Position, Item>) : Element(screen
         }
         joinBlocks()
         initPower()
-        println(powerMap)
+        theMoon()
     }
 
-    override fun render() {
+    fun theMoon(){
+        val bodyDef = BodyDef()
+        bodyDef.position.set(0f,camera.viewportHeight*3f)
+        val moon = world.createBody(bodyDef)
+        val circle = CircleShape()
+        circle.radius = camera.viewportWidth/2f
+        moon.createFixture(circle,1000f)
+        moonBody = moon
+    }
+
+    fun checkWin(){
+        if(TimeUtils.millis()-lastCheckTime>3000 && !win) {
+            if(lastCoreVector2.x == core.fixture.body.worldCenter.x && lastCoreVector2.y == core.fixture.body.worldCenter.y
+                    && lastCoreVector2.x>moonBody.worldCenter.x-camera.viewportWidth/2f && lastCoreVector2.x<moonBody.worldCenter.x +camera.viewportWidth/2f
+                    && lastCoreVector2.y>moonBody.worldCenter.y){
+                screen.win()
+            }
+            lastCheckTime = TimeUtils.millis()
+            lastCoreVector2.set(core.fixture.body.worldCenter.x,core.fixture.body.worldCenter.y)
+        }
+    }
+
+    override fun uiRender() {
         this.batch.draw(startButton, startButtonVector2.x, startButtonVector2.y)
         this.batch.draw(backButton, backButtonVector2.x, backButtonVector2.y)
+        this.batch.draw(infoPanelTexture,0f,32f)
+        if(this::core.isInitialized){
+            font.draw(batch,"Height:${(core.fixture.body.position.y*100).roundToInt()/100f}",10f,110f)
+            font.draw(batch,"Gravity:${(world.gravity.y * 100).roundToInt() /100f}",10f,110f-font.lineHeight)
+            font.draw(batch,"SpeedX:${(core.fixture.body.linearVelocity.x*100).roundToInt()/100f}",10f,110f-font.lineHeight*2)
+            font.draw(batch,"SpeedY:${(core.fixture.body.linearVelocity.y*100).roundToInt()/100f}",10f,110f-font.lineHeight*3)
+        }
+    }
+    override fun render() {
+        checkWin()
+        batch.draw(moon,moonBody.worldCenter.x-camera.viewportWidth/2f,moonBody.worldCenter.y - camera.viewportWidth/2f,camera.viewportWidth,camera.viewportWidth)
         blockList.forEach {
             it.sprite.rotation = it.fixture.body.angle * MathUtils.radiansToDegrees
             it.sprite.setPosition(it.fixture.body.position.x - 16, it.fixture.body.position.y - 16)
@@ -83,10 +128,18 @@ class LaunchPad(screen: BaseScreen, items: Map<Position, Item>) : Element(screen
                     }
                 }
             }
+            camera.position.y = core.fixture.body.position.y
+            if(core.fixture.body.position.y>camera.viewportHeight/2f && world.gravity.y<0){
+                if(world.gravity.y+0.01f<0)
+                    world.gravity = Vector2(0f,world.gravity.y+0.01f)
+                else
+                    world.gravity.y = 0f
+            }
         }
     }
 
     override fun dispose() {
+        moonTexture.dispose()
     }
 
     private fun createBlock(position: Position, item: Item): Block {
@@ -108,6 +161,7 @@ class LaunchPad(screen: BaseScreen, items: Map<Position, Item>) : Element(screen
             item.fuel?.let {
                 this.fuel = it.total
             }
+            if(item is Core) core = this
         }
     }
 
@@ -173,6 +227,5 @@ class LaunchPad(screen: BaseScreen, items: Map<Position, Item>) : Element(screen
         }
         return false
     }
-
 
 }

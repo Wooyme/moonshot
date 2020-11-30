@@ -18,4 +18,4 @@ open class Item(val name: String, val texture: Texture, val description: String 
     val hasJoint get() = jointProgram!=null
 }
 
-class Core(texture: Texture):Item("Core",texture,"Core",0.1f)
+class Core(texture: Texture):Item("Core",texture,"Spacecraft core",0.1f)

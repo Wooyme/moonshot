@@ -12,8 +12,12 @@ import me.wooy.game.misc.*
 import java.util.*
 
 class Staging(screen: BaseScreen, private val stage: Stage, val items: MutableMap<Position, Item>) : Element(screen.world, screen.batch, screen.camera) {
-    private val finishButton = TextureRegion(asset,32,204,64,20)
-    private val finishButtonVector2 = Vector2((camera.viewportWidth)/2f-finishButton.regionWidth,camera.viewportHeight-finishButton.regionHeight-10f)
+    private val buttonFont = BitmapFont()
+    private val button = TextureRegion(asset, 32, 204, 64, 20)
+    private val finishButtonVector2 = Vector2((camera.viewportWidth) / 2f - button.regionWidth, camera.viewportHeight - button.regionHeight - 10f)
+    private val helpButtonVector2 = Vector2((camera.viewportWidth) / 2f - button.regionWidth*2-10f,camera.viewportHeight - button.regionHeight - 10f)
+    private val alertTexture = TextureRegion(asset, 700, 1879, 68, 24)
+    private val alertVector2 = Vector2(camera.viewportWidth / 3f, camera.viewportHeight / 2f)
     private val skin = Skin(Gdx.files.internal("default/skin/uiskin.json"))
     private val font = BitmapFont()
     private val itemPanel = TextureRegion(asset, 256, 2720, 160, 96)
@@ -27,6 +31,7 @@ class Staging(screen: BaseScreen, private val stage: Stage, val items: MutableMa
     private var showItemPanel = false
     private var panelDrawer: (() -> Any?)? = null
     private var panelCallback: (() -> Any?)? = null
+    private var drawAlert: (() -> Any?)? = null
 
     init {
         (0 until (width / 32).toInt()).forEach {
@@ -39,6 +44,10 @@ class Staging(screen: BaseScreen, private val stage: Stage, val items: MutableMa
     }
 
     override fun render() {
+        this.batch.draw(button, finishButtonVector2.x, finishButtonVector2.y)
+        buttonFont.draw(this.batch, "Finish!", finishButtonVector2.x + 14, finishButtonVector2.y + button.regionHeight - 4)
+        this.batch.draw(button,helpButtonVector2.x,helpButtonVector2.y)
+        buttonFont.draw(this.batch, "Help!", helpButtonVector2.x + 14, helpButtonVector2.y + button.regionHeight - 4)
         cols.forEach {
             batch.draw(vLine, it, stagingVector.y, vLine.regionWidth.toFloat(), height)
         }
@@ -49,11 +58,30 @@ class Staging(screen: BaseScreen, private val stage: Stage, val items: MutableMa
             this.batch.draw(item.texture, cols[position.x] + 6, rows[position.y] + 6)
         }
         panelDrawer?.invoke()
+        drawAlert?.invoke()
     }
 
     override fun dispose() {
         font.dispose()
         skin.dispose()
+        buttonFont.dispose()
+    }
+
+    fun openHelp(x:Float,y:Float){
+        if (helpButtonVector2.x <= x
+                && helpButtonVector2.x + button.regionWidth >= x
+                && helpButtonVector2.y <= y
+                && helpButtonVector2.y + button.regionHeight >= y
+        ){
+            drawAlert = {
+                batch.draw(alertTexture, alertVector2.x, alertVector2.y, camera.viewportWidth / 3f, 200f)
+                font.draw(batch, "Build a rocket,\n and let it land on the moon", alertVector2.x + 40f, alertVector2.y + 160f)
+            }
+        }
+    }
+    
+    fun closeAlert(x: Float, y: Float) {
+        if (x < alertVector2.x || x > alertVector2.x + camera.viewportWidth / 3f || y < alertVector2.y || y > alertVector2.y + 200f) drawAlert = null
     }
 
     fun setItem(x: Float, y: Float, item: Item) {
@@ -89,7 +117,7 @@ class Staging(screen: BaseScreen, private val stage: Stage, val items: MutableMa
                         it.hasForce -> {
                             showThrusterPanel(it)
                         }
-                        it.hasJoint->{
+                        it.hasJoint -> {
                             showJointPanel(it)
                         }
                     }
@@ -174,7 +202,7 @@ class Staging(screen: BaseScreen, private val stage: Stage, val items: MutableMa
         }
     }
 
-    private fun showJointPanel(item: Item){
+    private fun showJointPanel(item: Item) {
         val eleVector2 = Vector2(camera.viewportWidth / 3f + 10f, camera.viewportHeight - 140f)
         val programVector2 = Vector2(eleVector2.x, eleVector2.y - font.lineHeight - 80f)
         panelDrawer = {
@@ -194,13 +222,20 @@ class Staging(screen: BaseScreen, private val stage: Stage, val items: MutableMa
         }
     }
 
-    fun finish(x:Float,y:Float):Boolean{
-        if(finishButtonVector2.x<=x
-                && finishButtonVector2.x+finishButton.regionWidth>=x
-                && finishButtonVector2.y<=y
-                && finishButtonVector2.y+finishButton.regionHeight>=y
-                && items.any { it.value is Core }){
-            return true
+    fun finish(x: Float, y: Float): Boolean {
+        if (finishButtonVector2.x <= x
+                && finishButtonVector2.x + button.regionWidth >= x
+                && finishButtonVector2.y <= y
+                && finishButtonVector2.y + button.regionHeight >= y
+        ) {
+            if (items.any { it.value is Core })
+                return true
+            else {
+                drawAlert = {
+                    batch.draw(alertTexture, alertVector2.x, alertVector2.y, camera.viewportWidth / 3f, 200f)
+                    font.draw(batch, "Core Missing!", alertVector2.x + 40f, alertVector2.y + 160f)
+                }
+            }
         }
         return false
     }

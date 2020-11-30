@@ -13,4 +13,5 @@ abstract class Element(protected val world: World, protected val batch: SpriteBa
 
     abstract fun render()
     abstract fun dispose()
+    open fun uiRender(){}
 }
