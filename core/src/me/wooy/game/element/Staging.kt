@@ -12,6 +12,8 @@ import me.wooy.game.misc.*
 import java.util.*
 
 class Staging(screen: BaseScreen, private val stage: Stage, val items: MutableMap<Position, Item>) : Element(screen.world, screen.batch, screen.camera) {
+    private val finishButton = TextureRegion(asset,32,204,64,20)
+    private val finishButtonVector2 = Vector2((camera.viewportWidth)/2f-finishButton.regionWidth,camera.viewportHeight-finishButton.regionHeight-10f)
     private val skin = Skin(Gdx.files.internal("default/skin/uiskin.json"))
     private val font = BitmapFont()
     private val itemPanel = TextureRegion(asset, 256, 2720, 160, 96)
@@ -164,7 +166,6 @@ class Staging(screen: BaseScreen, private val stage: Stage, val items: MutableMa
                     if (durationField.text.isNotEmpty()) durationField.text.toFloat() else -1f,
                     powerRateField.text.toFloat(),
                     Vector2(xField.text.toFloat(), yField.text.toFloat()))
-
             startTimeField.remove()
             durationField.remove()
             powerRateField.remove()
@@ -191,5 +192,16 @@ class Staging(screen: BaseScreen, private val stage: Stage, val items: MutableMa
             item.jointProgram = JointProgram(startTimeField.text.toFloat())
             startTimeField.remove()
         }
+    }
+
+    fun finish(x:Float,y:Float):Boolean{
+        if(finishButtonVector2.x<=x
+                && finishButtonVector2.x+finishButton.regionWidth>=x
+                && finishButtonVector2.y<=y
+                && finishButtonVector2.y+finishButton.regionHeight>=y
+                && items.any { it.value is Core }){
+            return true
+        }
+        return false
     }
 }

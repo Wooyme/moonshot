@@ -53,7 +53,7 @@ class Builder(private val moonshot: Moonshot, itemStaging: MutableMap<Position, 
 
     override fun touchUp(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int) {
         if (button == 0) {
-            if (items.finish(x, y)) {
+            if (staging.finish(x, y)) {
                 moonshot.screen = Main(moonshot, staging.items)
                 this.dispose()
             }

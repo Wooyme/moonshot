@@ -10,7 +10,8 @@ class Background(world: World,batch: SpriteBatch,camera: Camera):Element(world, 
     private val background = Texture(Gdx.files.internal("0.png"))
 
     override fun render() {
-        batch.draw(background,(this.camera.viewportWidth-background.width)/2,0f,background.width.toFloat(),background.height.toFloat())
+        val y = if(this.camera.position.y<1000f) this.camera.position.y else 2000f
+        batch.draw(background,(this.camera.viewportWidth-background.width)/2,y,background.width.toFloat(),background.height.toFloat())
     }
 
     override fun dispose() {

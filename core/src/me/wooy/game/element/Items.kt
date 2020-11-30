@@ -19,11 +19,10 @@ class Items(screen: BaseScreen) : Element(screen.world, screen.batch, screen.cam
     private val uiTop = TextureRegion(asset, 830, 1117, 200, 35)
     private val uiBottom = TextureRegion(asset, 830, 1185, 200, 35)
     private val information = TextureRegion(asset,32,2720,161,96)
-    private val finishButton = TextureRegion(asset,32,204,64,20)
+
     private val topVector2 = Vector2(0f,camera.viewportHeight-uiTop.regionHeight-10)
     private val bottomVector2 = Vector2(0f,200f)
     private val informationVector2 = Vector2(0f,32f)
-    private val finishButtonVector2 = Vector2((camera.viewportWidth)/2f-finishButton.regionWidth,camera.viewportHeight-finishButton.regionHeight-10f)
     private val cols = LinkedList<Float>()
     private val rows = LinkedList<Float>()
     private val items = HashMap<Position,Item>()
@@ -110,10 +109,5 @@ class Items(screen: BaseScreen) : Element(screen.world, screen.batch, screen.cam
         font.draw(batch,"Weight:${item.weight}",x,y-font.lineHeight*2)
     }
 
-    fun finish(x:Float,y:Float):Boolean{
-        if(finishButtonVector2.x<=x && finishButtonVector2.x+finishButton.regionWidth>=x && finishButtonVector2.y<=y && finishButtonVector2.y+finishButton.regionHeight>=y){
-            return true
-        }
-        return false
-    }
+
 }
