@@ -108,8 +108,8 @@ class Staging(screen: BaseScreen, private val stage: Stage, val items: MutableMa
         } else {
             val position = findItem(x, y)
             position?.let {
-                showItemPanel = true
                 items[it]?.let {
+                    showItemPanel = true
                     when {
                         it is Core -> {
                             showCorePanel()
