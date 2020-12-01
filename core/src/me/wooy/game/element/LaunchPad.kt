@@ -11,10 +11,7 @@ import com.badlogic.gdx.physics.box2d.*
 import com.badlogic.gdx.physics.box2d.joints.WeldJointDef
 import com.badlogic.gdx.utils.TimeUtils
 import me.wooy.game.main.Main
-import me.wooy.game.misc.Block
-import me.wooy.game.misc.Core
-import me.wooy.game.misc.Item
-import me.wooy.game.misc.Position
+import me.wooy.game.misc.*
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.math.roundToInt
@@ -79,8 +76,9 @@ class LaunchPad(private val screen: Main, items: Map<Position, Item>) : Element(
     override fun uiRender() {
         this.batch.draw(startButton, startButtonVector2.x, startButtonVector2.y)
         this.batch.draw(backButton, backButtonVector2.x, backButtonVector2.y)
-        this.batch.draw(infoPanelTexture,0f,32f)
+        this.batch.draw(infoPanelTexture,0f,32f,infoPanelTexture.regionWidth.toFloat(),infoPanelTexture.regionHeight*1.2f)
         if(this::core.isInitialized){
+            font.draw(batch,"Time:${if(starting) (TimeUtils.millis()-startTime)/1000f else 0f}",10f,110f+font.lineHeight)
             font.draw(batch,"Height:${(core.fixture.body.position.y*100).roundToInt()/100f}",10f,110f)
             font.draw(batch,"Gravity:${(world.gravity.y * 100).roundToInt() /100f}",10f,110f-font.lineHeight)
             font.draw(batch,"SpeedX:${(core.fixture.body.linearVelocity.x*100).roundToInt()/100f}",10f,110f-font.lineHeight*2)

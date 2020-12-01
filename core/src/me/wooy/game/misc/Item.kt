@@ -16,6 +16,18 @@ open class Item(val name: String, val texture: Texture, val description: String 
     val hasFuel get() = fuel != null
     val hasForce get() = force != null
     val hasJoint get() = jointProgram!=null
+    open fun copy():Item{
+        return Item(name, texture, description, weight).also {
+            it.force = force?.copy()
+            it.fuel = fuel?.copy()
+            it.powerProgram = powerProgram?.copy()
+            it.jointProgram = jointProgram?.copy()
+        }
+    }
 }
 
-class Core(texture: Texture):Item("Core",texture,"Spacecraft core",0.1f)
+class Core(texture: Texture):Item("Core",texture,"Spacecraft core",0.1f){
+    override fun copy(): Item {
+        return Core(texture)
+    }
+}

@@ -87,7 +87,7 @@ class Staging(screen: BaseScreen, private val stage: Stage, val items: MutableMa
     fun setItem(x: Float, y: Float, item: Item) {
         val position = findItem(x, y)
         position?.let {
-            items[it] = item
+            items[it] = item.copy()
         }
     }
 
@@ -168,20 +168,20 @@ class Staging(screen: BaseScreen, private val stage: Stage, val items: MutableMa
             font.draw(batch, "X:", programVector2.x, programVector2.y - font.lineHeight * 4)
             font.draw(batch, "Y:", programVector2.x, programVector2.y - font.lineHeight * 5)
         }
-        val startTimeField = TextField("0", skin)
+        val startTimeField = TextField(item.powerProgram?.startTime?.toString()?:"0", skin)
         startTimeField.setPosition(programVector2.x + 100f, programVector2.y - font.lineHeight * 2)
         startTimeField.setSize(100f, font.lineHeight)
-        val durationField = TextField("", skin)
+        val durationField = TextField(item.powerProgram?.duration?.let { if(it<0) "" else it.toString() }?:"", skin)
         durationField.messageText = "Optional"
         durationField.setPosition(programVector2.x + 100f, programVector2.y - font.lineHeight * 3)
         durationField.setSize(camera.viewportWidth / 3f - 150f, font.lineHeight)
-        val powerRateField = TextField("1.0", skin)
+        val powerRateField = TextField(item.powerProgram?.rate?.toString()?:"1.0", skin)
         powerRateField.setPosition(programVector2.x + 100f, programVector2.y - font.lineHeight * 4)
         powerRateField.setSize(camera.viewportWidth / 3f - 150f, font.lineHeight)
-        val xField = TextField("0.0", skin)
+        val xField = TextField(item.powerProgram?.vec?.x?.toString()?:"0.0", skin)
         xField.setPosition(programVector2.x + 100f, programVector2.y - font.lineHeight * 5)
         xField.setSize(camera.viewportWidth / 3f - 150f, font.lineHeight)
-        val yField = TextField("1.0", skin)
+        val yField = TextField(item.powerProgram?.vec?.y?.toString()?:"1.0", skin)
         yField.setPosition(programVector2.x + 100f, programVector2.y - font.lineHeight * 6)
         yField.setSize(camera.viewportWidth / 3f - 150f, font.lineHeight)
         stage.addActor(startTimeField)
@@ -190,10 +190,10 @@ class Staging(screen: BaseScreen, private val stage: Stage, val items: MutableMa
         stage.addActor(xField)
         stage.addActor(yField)
         panelCallback = {
-            item.powerProgram = PowerProgram(startTimeField.text.toFloat(),
-                    if (durationField.text.isNotEmpty()) durationField.text.toFloat() else -1f,
-                    powerRateField.text.toFloat(),
-                    Vector2(xField.text.toFloat(), yField.text.toFloat()))
+            item.powerProgram = PowerProgram(startTimeField.text.toFloatOrNull()?:0f,
+                    if (durationField.text.isNotEmpty()) durationField.text.toFloatOrNull()?:-1f else -1f,
+                    powerRateField.text.toFloatOrNull()?:0f,
+                    Vector2(xField.text.toFloatOrNull()?:0f, yField.text.toFloatOrNull()?:0f))
             startTimeField.remove()
             durationField.remove()
             powerRateField.remove()
@@ -212,12 +212,12 @@ class Staging(screen: BaseScreen, private val stage: Stage, val items: MutableMa
             font.draw(batch, "Program:", programVector2.x, programVector2.y)
             font.draw(batch, "Start Time:", programVector2.x, programVector2.y - font.lineHeight)
         }
-        val startTimeField = TextField("0", skin)
+        val startTimeField = TextField(item.jointProgram?.startTime?.toString()?:"0", skin)
         startTimeField.setPosition(programVector2.x + 100f, programVector2.y - font.lineHeight * 2)
         startTimeField.setSize(100f, font.lineHeight)
         stage.addActor(startTimeField)
         panelCallback = {
-            item.jointProgram = JointProgram(startTimeField.text.toFloat())
+            item.jointProgram = JointProgram(startTimeField.text.toFloatOrNull()?:0f)
             startTimeField.remove()
         }
     }

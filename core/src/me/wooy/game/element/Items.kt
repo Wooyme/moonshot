@@ -43,7 +43,7 @@ class Items(screen: BaseScreen) : Element(screen.world, screen.batch, screen.cam
         }
         items[Position(2,0)] = Item("Structure", Texture(Gdx.files.internal("items/simple.png")),"Connect each part",1f)
         items[Position(3,0)] = Item("Spinner", Texture(Gdx.files.internal("items/spinner.png")),"Generate small thrust in any direction",0.5f).apply {
-            this.force = Force(50000f, Vector2(1f,1f),1f)
+            this.force = Force(200000f, Vector2(1f,1f),0.1f)
             this.fuel = Fuel(1f,0.5f)
         }
         items[Position(4,0)] = Item("Joint",Texture(Gdx.files.internal("items/joint.png")),"It can disconnect from the surroundings at a certain time",0.1f).apply {
